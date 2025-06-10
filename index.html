@@ -25,6 +25,65 @@
       flex-direction: column;
       align-items: center;
     }
+    .top-bar {
+      width: 100%;
+      background-color: #b30000;
+      color: white;
+      font-size: 20px;
+      font-weight: bold;
+      font-family: Arial, sans-serif;
+      padding: 15px 20px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 1000;
+      text-align: left;
+    }
+
+    /* --- NOVO: carrossel de fotos --- */
+    .photo-carousel {
+      margin-top: 60px; /* para não ficar embaixo da barra fixa */
+      width: 100%;
+      max-width: 700px;
+      height: 200px;
+      overflow: hidden;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      position: relative;
+      background: #fff;
+    }
+    .carousel-track {
+      display: flex;
+      width: calc(200px * 5); /* número de imagens x largura */
+      animation: slide 20s linear infinite;
+    }
+    .carousel-track:hover {
+      animation-play-state: paused;
+    }
+    .carousel-slide {
+      flex: 0 0 200px;
+      height: 200px;
+      user-select: none;
+    }
+    .carousel-slide img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 12px;
+      display: block;
+    }
+    @keyframes slide {
+      0% {
+        transform: translateX(0);
+      }
+      100% {
+        transform: translateX(calc(-200px * 5));
+      }
+    }
+
+    /* Restante do seu CSS */
     h2 {
       margin-bottom: 10px;
       color: #b30000;
@@ -104,10 +163,53 @@
       #map {
         height: 400px;
       }
+      .photo-carousel {
+        height: 140px;
+      }
+      .carousel-slide {
+        flex: 0 0 140px;
+        height: 140px;
+      }
+      .carousel-track {
+        width: calc(140px * 5);
+        animation: slideSmall 20s linear infinite;
+      }
+      @keyframes slideSmall {
+        0% {
+          transform: translateX(0);
+        }
+        100% {
+          transform: translateX(calc(-140px * 5));
+        }
+      }
     }
   </style>
 </head>
 <body>
+
+  <div class="top-bar">Sangue Herói</div>
+
+  <!-- Carrossel de fotos -->
+  <div class="photo-carousel" aria-label="Fotos de pessoas doando sangue">
+    <div class="carousel-track">
+      <div class="carousel-slide">
+        <img src="https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&w=400&q=80" alt="Pessoa doando sangue 1" />
+      </div>
+      <div class="carousel-slide">
+        <img src="https://images.unsplash.com/photo-1607746882042-944635dfe10e?auto=format&fit=crop&w=400&q=80" alt="Pessoa doando sangue 2" />
+      </div>
+      <div class="carousel-slide">
+        <img src="https://images.unsplash.com/photo-1588776814546-2f23e78695be?auto=format&fit=crop&w=400&q=80" alt="Pessoa doando sangue 3" />
+      </div>
+      <div class="carousel-slide">
+        <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=400&q=80" alt="Pessoa doando sangue 4" />
+      </div>
+      <div class="carousel-slide">
+        <img src="https://images.unsplash.com/photo-1526256262350-7da7584cf5eb?auto=format&fit=crop&w=400&q=80" alt="Pessoa doando sangue 5" />
+      </div>
+    </div>
+  </div>
+
   <h2>📍 Mapa Interativo</h2>
   <p style="max-width:700px; text-align:center; margin-bottom:20px;">
     Confira abaixo os locais de doação próximos a você ou pesquise um local.
