@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Banco Amigo</title>
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+  />
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: Arial, sans-serif;
+      background: #fefefe;
+      color: #333;
+      line-height: 1.5;
+      padding: 20px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    h2 {
+      margin-bottom: 10px;
+      color: #b30000;
+    }
+    #search-container {
+      width: 100%;
+      max-width: 700px;
+      margin-bottom: 15px;
+    }
+    #search-box {
+      width: 100%;
+      padding: 10px 14px;
+      font-size: 16px;
+      border: 2px solid #b30000;
+      border-radius: 8px;
+      outline-offset: 2px;
+      transition: border-color 0.3s ease;
+    }
+    #search-box:focus {
+      border-color: #ff4d4d;
+      box-shadow: 0 0 8px rgba(179, 0, 0, 0.5);
+    }
+    #map {
+      width: 100%;
+      max-width: 700px;
+      height: 500px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      margin-bottom: 30px;
+      user-select: none;
+    }
+    .info-boxes {
+      max-width: 700px;
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .info-box {
+      background: #fff;
+      border-left: 6px solid #b30000;
+      padding: 22px 18px;
+      flex: 1 1 250px;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(179, 0, 0, 0.15);
+      transition: box-shadow 0.3s ease;
+    }
+    .info-box:hover {
+      box-shadow: 0 6px 20px rgba(179, 0, 0, 0.3);
+    }
+    .info-box h3 {
+      color: #b30000;
+      margin-bottom: 12px;
+      font-size: 1.2rem;
+    }
+    .info-box p {
+      margin-bottom: 14px;
+      font-size: 0.95rem;
+    }
+    .info-box a {
+      color: #b30000;
+      font-weight: 600;
+      text-decoration: none;
+      font-size: 1rem;
+    }
+    .info-box a:hover {
+      text-decoration: underline;
+    }
+    @media (max-width: 720px) {
+      .info-boxes {
+        flex-direction: column;
+        align-items: center;
+      }
+      .info-box {
+        max-width: 100%;
+      }
+      #map {
+        height: 400px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h2>📍 Mapa Interativo</h2>
+  <p style="max-width:700px; text-align:center; margin-bottom:20px;">
+    Confira abaixo os locais de doação próximos a você ou pesquise um local.
+  </p>
+
+  <div id="search-container">
+    <input
+      type="text"
+      id="search-box"
+      placeholder="Digite o local que deseja ir e pressione Enter"
+      aria-label="Buscar local para doação de sangue"
+    />
+  </div>
+
+  <div id="map"></div>
+
+  <div class="info-boxes">
+    <div class="info-box">
+      <h3>❌ Impedimentos</h3>
+      <p>Veja quem não pode doar sangue temporária ou permanentemente.</p>
+      <a href="impedimentos.html">Saiba mais</a>
+    </div>
+    <div class="info-box">
+      <h3>✔️ Orientações</h3>
+      <p>Confira os cuidados necessários antes de doar sangue.</p>
+      <a href="orinetações.html">Saiba mais</a>
+    </div>
+    <div class="info-box">
+      <h3>🤝 Como doar & Por que doar</h3>
+      <p>Saiba os pré-requisitos, passo a passo e a importância da doação.</p>
+      <a href="doar.html">Saiba mais</a>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+    // Locais para doação
+    const locais = [
+      { nome: "Hospital Campo Limpo", lat: -23.6600, lng: -46.7517 },
+      { nome: "Santa Casa de Misericórdia de Santo Amaro", lat: -23.6526, lng: -46.7142 },
+      { nome: "Hospital Regional Sul", lat: -23.6788, lng: -46.7121 },
+      { nome: "Hospital Pedreira", lat: -23.6845, lng: -46.7024 },
+      { nome: "Fundação Pró-Sangue – Posto Clínicas", lat: -23.5566, lng: -46.6682 },
+      { nome: "Fundação Pró-Sangue – Posto Dante Pazzanese", lat: -23.5849, lng: -46.6544 },
+      { nome: "Fundação Pró-Sangue – Posto Mandaqui", lat: -23.4856, lng: -46.6252 },
+      { nome: "Hemocentro da Santa Casa de São Paulo", lat: -23.5411, lng: -46.6473 },
+      { nome: "Banco de Sangue de São Paulo – Hospital Edmundo Vasconcelos", lat: -23.5989, lng: -46.6412 },
+      { nome: "Banco de Sangue Paulista", lat: -23.5865, lng: -46.6738 },
+      { nome: "Hospital Santa Catarina", lat: -23.5691, lng: -46.6486 },
+      { nome: "Hospital Municipal Alípio Correa Neto", lat: -23.5025, lng: -46.5195 },
+      { nome: "Hospital Municipal do Tatuapé", lat: -23.5382, lng: -46.5776 },
+      { nome: "Hospital Municipal da Aclimação", lat: -23.5728, lng: -46.6231 },
+    ];
+
+    // Inicializar mapa
+    const map = L.map("map").setView([-23.6765, -46.7366], 12);
+
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution:
+        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    }).addTo(map);
+
+    // Marcadores dos locais
+    locais.forEach((local) => {
+      L.marker([local.lat, local.lng])
+        .addTo(map)
+        .bindPopup(`<strong>${local.nome}</strong>`);
+    });
+
+    // Marcador e círculo do usuário
+    let userMarker = null;
+    let userCircle = null;
+
+    function centralizarUsuario(lat, lng) {
+      map.setView([lat, lng], 13);
+      if (userMarker) {
+        userMarker.setLatLng([lat, lng]);
+        userCircle.setLatLng([lat, lng]);
+      } else {
+        userMarker = L.marker([lat, lng], {icon: L.icon({
+          iconUrl: 'https://cdn-icons-png.flaticon.com/512/64/64113.png',
+          iconSize: [32, 32],
+          iconAnchor: [16, 32],
+          popupAnchor: [0, -32]
+        })}).addTo(map).bindPopup("Você está aqui");
+        userCircle = L.circle([lat, lng], {
+          radius: 300,
+          color: "#b30000",
+          fillColor: "#f03",
+          fillOpacity: 0.5,
+        }).addTo(map);
+        userMarker.openPopup();
+      }
+    }
+
+    // Distância em metros (haversine)
+    function distanciaMetros(lat1, lon1, lat2, lon2) {
+      function rad(x) {
+        return (x * Math.PI) / 180;
+      }
+      const R = 6378137;
+      const dLat = rad(lat2 - lat1);
+      const dLon = rad(lon2 - lon1);
+      const a =
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(rad(lat1)) *
+          Math.cos(rad(lat2)) *
+          Math.sin(dLon / 2) *
+          Math.sin(dLon / 2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      return R * c;
+    }
+
+    // Geolocalização
+    if ("geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const lat = position.coords.latitude;
+          const lng = position.coords.longitude;
+          centralizarUsuario(lat, lng);
+        },
+        () => {
+          // Caso erro ou permissão negada
+        }
+      );
+
+      navigator.geolocation.watchPosition(
+        (position) => {
+          const lat = position.coords.latitude;
+          const lng = position.coords.longitude;
+
+          const center = map.getCenter();
+          const dist = distanciaMetros(center.lat, center.lng, lat, lng);
+
+          if (dist > 200) {
+            centralizarUsuario(lat, lng);
+          } else if (userMarker) {
+            userMarker.setLatLng([lat, lng]);
+            userCircle.setLatLng([lat, lng]);
+          }
+        },
+        (err) => {
+          console.error("Erro no watchPosition:", err);
+        },
+        {
+          enableHighAccuracy: true,
+          maximumAge: 10000,
+          timeout: 5000,
+        }
+      );
+    }
+
+    // Busca usando Nominatim OpenStreetMap
+    const searchBox = document.getElementById("search-box");
+    searchBox.addEventListener("keypress", function (e) {
+      if (e.key === "Enter") {
+        const query = searchBox.value.trim();
+        if (!query) return;
+
+        fetch(
+          `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
+            query
+          )}`
+        )
+          .then((response) => response.json())
+          .then((data) => {
+            if (data && data.length > 0) {
+              const place = data[0];
+              const lat = parseFloat(place.lat);
+              const lon = parseFloat(place.lon);
+              map.setView([lat, lon], 15);
+              L.marker([lat, lon])
+                .addTo(map)
+                .bindPopup(`<strong>${place.display_name}</strong>`)
+                .openPopup();
+            } else {
+              alert("Local não encontrado.");
+            }
+          })
+          .catch(() => alert("Erro ao buscar o local."));
+      }
+    });
+  </script>
+</body>
+</html>
